@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "C:\\mrldev\\speechEclipse\\app\\build\\intermediates\\res\\merged\\debug\\drawable-mdpi\\ic_action_settings.png",
+        "source": "C:\\mrldev\\speechEclipse\\app\\src\\main\\res\\drawable-mdpi\\ic_action_settings.png"
+    },
+    {
+        "merged": "C:\\mrldev\\speechEclipse\\app\\build\\intermediates\\res\\merged\\debug\\drawable-mdpi\\ic_action_about.png",
+        "source": "C:\\mrldev\\speechEclipse\\app\\src\\main\\res\\drawable-mdpi\\ic_action_about.png"
+    },
+    {
+        "merged": "C:\\mrldev\\speechEclipse\\app\\build\\intermediates\\res\\merged\\debug\\drawable-mdpi\\ic_launcher.png",
+        "source": "C:\\mrldev\\speechEclipse\\app\\src\\main\\res\\drawable-mdpi\\ic_launcher.png"
+    }
+]

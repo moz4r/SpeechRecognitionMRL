@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="settings_mode_entries">
+        <item name="0">never - simple recognition - no selection</item>
+        <item name="1">manual - select an entry yourself</item>
+        <item name="2">automatic - auto-selecting the first entry</item>
+    </string-array>
+    <string-array name="settings_mode_entryvalues">
+        <item name="0">0</item>
+        <item name="1">1</item>
+        <item name="2">2</item>
+    </string-array>
+    <string-array name="settings_updatemode_entries">
+        <item name="0">startup</item>
+        <item name="1">manually</item>
+        <item name="2">1x a day</item>
+    </string-array>
+    <string-array name="settings_updatemode_entryvalues">
+        <item name="0">0</item>
+        <item name="1">1</item>
+        <item name="2">2</item>
+    </string-array>
+    <string name="about1">Version: </string>
+    <string name="about2">\n\nDo you like this App?\nLet me know!\n\nAnd if you don\'t know MRL, yet,\nhead over to myrobotlab.org!</string>
+    <string name="app_name">SpeechRecognitionMRL</string>
+    <string name="err_norecogfound">Recognizer not present</string>
+    <string name="intent_speechrecog">Speech Recognition with MRL</string>
+    <string name="main_action_about">About</string>
+    <string name="main_action_settings">Settings</string>
+    <string name="main_description">Click the Button, then start speaking</string>
+    <string name="main_speakButton">CLICK ME!</string>
+    <string name="settings_checkforupdatesbutton_sum">Search for Updates manually</string>
+    <string name="settings_checkforupdatesbutton_tit">Check for Updates NOW</string>
+    <string name="settings_displayresponse_sum">Should the response from ProgramAB be displayed?</string>
+    <string name="settings_displayresponse_tit">display response</string>
+    <string name="settings_ip_sum">Enter the IP of the MRL-host</string>
+    <string name="settings_ip_tit">IP</string>
+    <string name="settings_mode_sum">Select how the result is send to the host-instance</string>
+    <string name="settings_mode_tit">mode</string>
+    <string name="settings_port_sum">Enter the port of the AndroidSpeechRecognition-service</string>
+    <string name="settings_port_tit">port</string>
+    <string name="settings_servicename_sum">Enter the instance name of your ProgramAB-service</string>
+    <string name="settings_servicename_tit">service name</string>
+    <string name="settings_socketmode_sum">Allows MRL to work closer together with this App.</string>
+    <string name="settings_socketmode_tit">socket mode</string>
+    <string name="settings_updatemode_sum">Set, when the App should look for Updates</string>
+    <string name="settings_updatemode_tit">Check for Updates</string>
+    <string name="versionname">2015.05.01</string>
+    <style name="CustomActionBarStyle" parent="android:style/Widget.Holo.ActionBar">
+        <item name="android:titleTextStyle">@style/NoTitleText</item>
+        <item name="android:subtitleTextStyle">@style/NoTitleText</item>
+        <item name="android:displayOptions">useLogo|showHome</item>
+    </style>
+    <style name="CustomTheme" parent="android:style/Theme.Holo.Light">
+        <item name="android:actionBarStyle">@style/CustomActionBarStyle</item>
+    </style>
+    <style name="NoTitleText">
+        <item name="android:textSize">0sp</item>
+        <item name="android:textColor">#00000000</item>
+    </style>
+</resources>

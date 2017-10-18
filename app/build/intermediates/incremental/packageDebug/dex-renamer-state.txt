@@ -1,0 +1,7 @@
+#Thu Oct 19 01:30:07 CEST 2017
+base.0=C\:\\mrldev\\speechEclipse\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\10000\\instant-run_55e1cefd685ffa695ca2f765a3c6a88041344545
+renamed.1=classes2.dex
+renamed.0=classes.dex
+file.1=C\:\\mrldev\\speechEclipse\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\10000\\instant-run-bootstrap_2a4b770b09daa4c278ed2d08b3b322ff74066c61\\classes.dex
+base.1=C\:\\mrldev\\speechEclipse\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\10000\\instant-run-bootstrap_2a4b770b09daa4c278ed2d08b3b322ff74066c61
+file.0=C\:\\mrldev\\speechEclipse\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\10000\\instant-run_55e1cefd685ffa695ca2f765a3c6a88041344545\\classes.dex
