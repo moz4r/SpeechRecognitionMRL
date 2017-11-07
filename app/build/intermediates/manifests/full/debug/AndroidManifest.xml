@@ -13,6 +13,7 @@
 
     <application
         android:allowBackup="false"
+        android:debuggable="true"
         android:icon="@drawable/ic_launcher"
         android:label="SpeechRecognitionMRL"
         android:theme="@style/CustomTheme" >

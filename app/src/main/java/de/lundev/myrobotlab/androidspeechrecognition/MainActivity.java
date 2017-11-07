@@ -18,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.os.StrictMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -45,7 +46,11 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        if (android.os.Build.VERSION.SDK_INT > 9)
+        {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
         //Startup-routines
         new ServiceHelper().checkForUpdates(this, false);
 
@@ -69,9 +74,10 @@ public class MainActivity extends Activity {
                 //ERROR
                 Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, "ERR_SOCKETMODECHECK_FAILED");
             } else if (r.equals("true")) {
-                client.sendToServer("version=" + BuildConfig.VERSION_NAME);
+                client.sendToServer("version=2015.01.01"); // + BuildConfig.VERSION_NAME
             }
         }
+
 
         //get references to all important layout-pieces
         Button speakButton = (Button) findViewById(R.id.speakButton);

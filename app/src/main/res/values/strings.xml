@@ -8,6 +8,8 @@
     <string name="main_action_about">About</string>
     <string name="err_norecogfound">Recognizer not present</string>
     <string name="intent_speechrecog">Speech Recognition with MRL</string>
+    <string name="settings_automode_tit">Auto Mode</string>
+    <string name="settings_automode_sum">Automatic is Magic</string>
     <string name="settings_ip_tit">IP</string>
     <string name="settings_ip_sum">Enter the IP of the MRL-host</string>
     <string name="settings_servicename_tit">service name</string>
@@ -26,4 +28,5 @@
     <string name="settings_checkforupdatesbutton_sum">Search for Updates manually</string>
     <string name="about1">Version: </string>
     <string name="about2">\n\nDo you like this App?\nLet me know!\n\nAnd if you don\'t know MRL, yet,\nhead over to myrobotlab.org!</string>
+    <string name="AutoMode">AutoMode</string>
 </resources>

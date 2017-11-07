@@ -1,4 +1,4 @@
-#Thu Oct 19 01:30:07 CEST 2017
-base.0=C\:\\mrldev\\speechEclipse\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\5\\slice_3
+#Tue Nov 07 23:59:18 CET 2017
+base.0=C\:\\mrldev\\speechEclipse\\app\\build\\intermediates\\transforms\\dexMerger\\debug\\4
 renamed.0=classes.dex
-file.0=C\:\\mrldev\\speechEclipse\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\5\\slice_3\\classes.dex
+file.0=C\:\\mrldev\\speechEclipse\\app\\build\\intermediates\\transforms\\dexMerger\\debug\\4\\classes.dex
