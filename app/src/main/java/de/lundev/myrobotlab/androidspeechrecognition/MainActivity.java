@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 /**
  * @author LunDev (GitHub), Ma. Vo. (MyRobotLab) based on this ->
  * http://www.jameselsey.co.uk/blogs/techblog/android-how-to-implement-voice-recognition-a-nice-easy-tutorial/
