@@ -4,23 +4,22 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.os.StrictMode;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,17 +27,23 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
+
 /**
  * @author LunDev (GitHub), Ma. Vo. (MyRobotLab) based on this ->
+ * @author Moz4r
  * http://www.jameselsey.co.uk/blogs/techblog/android-how-to-implement-voice-recognition-a-nice-easy-tutorial/
  * could be seen as an outer part of MyRobotLab (myrobotlab.org)
  */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements RecognitionListener {
 
     private static final int REQUEST_CODE = 1234;
     private ListView wordsList;
-
+    private static SpeechRecognizer speech = null;
+    private static Intent intent;
+    private boolean isListening=false;
+    TextView debug;
     Client client;
+    ImageButton speakButton;
 
     /**
      * called when the activity is started, currently when the App starts
@@ -52,6 +57,8 @@ public class MainActivity extends Activity {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
+        speakButton = (ImageButton) findViewById(R.id.speakButton);
+
         //Startup-routines
         new ServiceHelper().checkForUpdates(this, false);
 
@@ -59,8 +66,10 @@ public class MainActivity extends Activity {
         boolean socketmode = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getBoolean("socketmode", false);
-        if (socketmode) {
+
             TextView description = (TextView) findViewById(R.id.description);
+            ImageButton speakButton = (ImageButton) findViewById(R.id.speakButton);
+            debug = (TextView) findViewById(R.id.debug);
             description.setText("Starting socket");
             client = new Client(this, description);
             String r = null;
@@ -77,11 +86,12 @@ public class MainActivity extends Activity {
             } else if (r.equals("true")) {
                 client.sendToServer("version=2015.01.01"); // + BuildConfig.VERSION_NAME
             }
-        }
+
 
 
         //get references to all important layout-pieces
-        Button speakButton = (Button) findViewById(R.id.speakButton);
+
+
         wordsList = (ListView) findViewById(R.id.list);
 
         wordsList.setOnItemClickListener(new OnItemClickListener() {
@@ -91,14 +101,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        // disable the button if no recognition service is present
-        PackageManager pm = getPackageManager();
-        List<ResolveInfo> activities = pm.queryIntentActivities(
-                new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
-        if (activities.isEmpty()) {
-            speakButton.setEnabled(false);
-            speakButton.setText(getString(R.string.err_norecogfound));
-        }
+
     }
 
     /**
@@ -113,34 +116,118 @@ public class MainActivity extends Activity {
     /**
      * use an intent to start the VoiceRecognition-Activity
      */
+
+
+
     private void startVoiceRecognitionActivity() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.intent_speechrecog));
-        startActivityForResult(intent, REQUEST_CODE);
+        if (!isListening) {
+            if (speech == null) {
+                speech = SpeechRecognizer.createSpeechRecognizer(this);
+                speech.setRecognitionListener(this);
+            }
+            intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.intent_speechrecog));
+
+            speech.startListening(intent);
+        }
     }
 
-    /**
-     * work with the results form the VoiceRecognition-Activity
-     */
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-            // Populate the wordsList with the String values the recognition engine thought it heard
-            ArrayList<String> matches = data.getStringArrayListExtra(
-                    RecognizerIntent.EXTRA_RESULTS);
-            wordsList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,
-                    matches));
+    protected void onPause() {
+        super.onPause();
+        onDestroy();
+    }
 
-            String mode = PreferenceManager
-                    .getDefaultSharedPreferences(this)
-                    .getString("mode", "0");
-            if (mode.equals("2")) {
-                sendItemAtPos(0);
-            }
+    public void onBeginningOfSpeech() {
+        // TODO Auto-generated method stub
+        System.out.println("onbeginningofspeech");
+    }
+
+    public void onBufferReceived(byte[] arg0) {
+        // TODO Auto-generated method stub
+        //Log.i(TAG, "onbufferreceived");
+    }
+    public void onEndOfSpeech() {
+        System.out.println("endofspeech");
+    }
+
+
+    public void onEvent(int arg0, Bundle arg1) {
+        // TODO Auto-generated method stub
+        System.out.println("onevent");
+    }
+
+    public void onPartialResults(Bundle arg0) {
+        // TODO Auto-generated method stub
+        System.out.println("onpartialresults");
+    }
+
+    public void onReadyForSpeech(Bundle arg0) {
+        // TODO Auto-generated method stub
+        System.out.println("onreadyforspeech");
+        listeningStatusChange(true);
+    }
+
+    public void onResults(Bundle arg0) {
+        // TODO Auto-generated method stub
+        listeningStatusChange(false);
+        System.out.println("onresults");
+        ArrayList<String> matches = arg0.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        wordsList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,
+                matches));
+
+        String mode = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString("mode", "0");
+        if (mode.equals("2")) {
+            sendItemAtPos(0);
         }
-        super.onActivityResult(requestCode, resultCode, data);
+        startVoiceRecognitionActivity();
+    }
+
+    public void onRmsChanged(float arg0) {
+        // TODO Auto-generated method stub
+        //Log.i(TAG, "onrmschanged");
+    }
+
+    @Override
+    public void onDestroy() {
+        listeningStatusChange(false);
+        super.onDestroy();
+        if(speech != null)
+        {
+            speech.destroy();
+            speech=null;
+        }
+        System.out.println("destroy");
+    }
+
+    @Override
+    public void onError(int errorCode)
+    {
+        listeningStatusChange(false);
+        debug.setText("errorCode"+errorCode);
+        if ((errorCode == SpeechRecognizer.ERROR_NO_MATCH))
+        {
+            //Log.d(TAG, "didn't recognize anything");
+            startVoiceRecognitionActivity();
+        }
+
+
+    }
+
+    public void listeningStatusChange(boolean status) {
+        if (status) {
+            speakButton.setImageResource(R.drawable.microon);
+        }
+        else
+        {
+            speakButton.setImageResource(R.drawable.microoff);
+        }
+        client.sendToServer("isListening=" + status);
+        isListening=status;
     }
 
     public void sendItemAtPos(int position) {

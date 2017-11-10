@@ -95,7 +95,7 @@ public class Client {
             try {
                 Object obj;
                 while ((obj = in.readObject()) != null) {
-//                    System.out.println("Received message from server");
+                   System.out.println("Received message from server");
 
                     String mes = (String) obj;
 

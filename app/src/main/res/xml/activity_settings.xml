@@ -2,24 +2,11 @@
 <PreferenceScreen xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android" >
     <PreferenceCategory android:title="SETUP" >
-        <CheckBoxPreference
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:defaultValue="0"
-            android:key="@string/AutoMode"
-            android:summary="@string/settings_automode_sum"
-            android:title="@string/settings_automode_tit" />
         <EditTextPreference
             android:key="ip"
             android:title="@string/settings_ip_tit"
             android:summary="@string/settings_ip_sum"
             android:defaultValue="192.168.178.555"
-        />
-        <EditTextPreference
-            android:key="servicename"
-            android:title="@string/settings_servicename_tit"
-            android:summary="@string/settings_servicename_sum"
-            android:defaultValue="pab"
         />
         <EditTextPreference
             android:key="port"
@@ -37,17 +24,6 @@
             android:entryValues="@array/settings_mode_entryvalues"
             android:defaultValue="0"
         />
-        <CheckBoxPreference
-            android:key="displayresponse"
-            android:title="@string/settings_displayresponse_tit"
-            android:summary="@string/settings_displayresponse_sum"
-            android:defaultValue="g"
-        />
-        <CheckBoxPreference
-            android:defaultValue="g"
-            android:key="socketmode"
-            android:summary="@string/settings_socketmode_sum"
-            android:title="@string/settings_socketmode_tit" />
     </PreferenceCategory>
     <PreferenceCategory android:title="UPDATES" >
         <ListPreference
