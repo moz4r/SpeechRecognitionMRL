@@ -30,6 +30,8 @@ import java.util.logging.Logger;
  * @author Moz4r
  * http://www.jameselsey.co.uk/blogs/techblog/android-how-to-implement-voice-recognition-a-nice-easy-tutorial/
  * could be seen as an outer part of MyRobotLab (myrobotlab.org)
+ * Client temporary build :
+ * Client temporary sources :
  */
 public class MainActivity extends Activity implements RecognitionListener {
 
