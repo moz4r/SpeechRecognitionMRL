@@ -17,12 +17,11 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="CONFIG" >
         <ListPreference
-            android:key="mode"
-            android:title="@string/settings_mode_tit"
-            android:summary="@string/settings_mode_sum"
+            android:defaultValue="2"
             android:entries="@array/settings_mode_entries"
             android:entryValues="@array/settings_mode_entryvalues"
-            android:defaultValue="0"
-        />
+            android:key="mode"
+            android:summary="@string/settings_mode_sum"
+            android:title="@string/settings_mode_tit" />
     </PreferenceCategory>
 </PreferenceScreen>
