@@ -3,6 +3,7 @@ package de.lundev.myrobotlab.androidspeechrecognition;
 import android.content.Context;
 import android.preference.PreferenceManager;
 import android.widget.TextView;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -11,18 +12,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author Marvin
  * @author Moz4r
  */
 public class Client {
 
-    private ObjectOutputStream out;
-    private ObjectInputStream in;
-
     private final Context ctx;
     private final TextView description;
     private final MainActivity mainactivity;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
 
     public Client(MainActivity ctxt, TextView descrip) {
         ctx = ctxt;
@@ -82,21 +81,16 @@ public class Client {
         } else if (mes.startsWith("fromServer")) {
             String[] split = mes.split("=");
             mainactivity.mesFromServer(split[1]);
-        } else if (mes.startsWith("startListening"))
-        {
+        } else if (mes.startsWith("startListening")) {
             mainactivity.startListenInvoke();
-        } else if (mes.startsWith("stopListening"))
-        {
+        } else if (mes.startsWith("stopListening")) {
             mainactivity.stopListenInvoke();
-        } else if (mes.startsWith("setAutoListenTrue"))
-        {
+        } else if (mes.startsWith("setAutoListenTrue")) {
             mainactivity.setAutoListen(true);
-        } else if (mes.startsWith("setAutoListenFalse"))
-        {
+        } else if (mes.startsWith("setAutoListenFalse")) {
             mainactivity.setAutoListen(false);
-        } else if (mes.startsWith("heartBeat"))
-        {
-        // TODO heartbeat
+        } else if (mes.startsWith("heartBeat")) {
+            // TODO heartbeat
         } else {
             System.out.println("ERROR: " + mes);
         }
@@ -109,7 +103,7 @@ public class Client {
             try {
                 Object obj;
                 while ((obj = in.readObject()) != null) {
-                   System.out.println("Received message from server");
+                    System.out.println("Received message from server");
 
                     String mes = (String) obj;
 

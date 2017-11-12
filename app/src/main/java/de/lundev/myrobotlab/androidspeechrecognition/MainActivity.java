@@ -2,9 +2,12 @@ package de.lundev.myrobotlab.androidspeechrecognition;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -18,7 +21,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.os.StrictMode;
+
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -28,10 +31,10 @@ import java.util.logging.Logger;
 /**
  * @author LunDev (GitHub), Ma. Vo. (MyRobotLab) based on this ->
  * @author Moz4r
- * http://www.jameselsey.co.uk/blogs/techblog/android-how-to-implement-voice-recognition-a-nice-easy-tutorial/
- * could be seen as an outer part of MyRobotLab (myrobotlab.org)
- * Client temporary build : https://github.com/moz4r/SpeechRecognitionMRL/blob/master/AndroidSpeechRecognition.apk?raw=true
- * Client temporary sources : https://github.com/moz4r/SpeechRecognitionMRL
+ *         http://www.jameselsey.co.uk/blogs/techblog/android-how-to-implement-voice-recognition-a-nice-easy-tutorial/
+ *         could be seen as an outer part of MyRobotLab (myrobotlab.org)
+ *         Client temporary build : https://github.com/moz4r/SpeechRecognitionMRL/blob/master/AndroidSpeechRecognition.apk?raw=true
+ *         Client temporary sources : https://github.com/moz4r/SpeechRecognitionMRL
  */
 public class MainActivity extends Activity implements RecognitionListener {
 
@@ -39,53 +42,42 @@ public class MainActivity extends Activity implements RecognitionListener {
     private ListView wordsList;
     private static SpeechRecognizer speech = null;
     private static Intent intent;
-    private boolean isListening=false;
-    private boolean autoListen=false;
+    private static boolean isListening;
+    private static boolean autoListen;
+    private Context context = this;
+    String r = null;
     TextView debug;
     Client client;
     ImageButton speakButton;
+    ProgressDialog dialog;
 
     /**
      * called when the activity is started, currently when the App starts
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+        //MainActivity.context = getApplicationContext();
+
         setContentView(R.layout.activity_main);
-        if (android.os.Build.VERSION.SDK_INT > 9)
-        {
+
+        String ip = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString("ip", "0");
+
+        if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
         speakButton = (ImageButton) findViewById(R.id.speakButton);
 
-        //Startup-routines
+        TextView description = (TextView) findViewById(R.id.description);
+        ImageButton speakButton = (ImageButton) findViewById(R.id.speakButton);
+        debug = (TextView) findViewById(R.id.debug);
+        description.setText("Starting socket");
 
-            TextView description = (TextView) findViewById(R.id.description);
-            ImageButton speakButton = (ImageButton) findViewById(R.id.speakButton);
-            debug = (TextView) findViewById(R.id.debug);
-            description.setText("Starting socket");
-            client = new Client(this, description);
-            String r = null;
-            try {
-                r = new AsyncStartClient(this, client).execute("start").get();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            if (r == null) {
-                //ERROR
-                Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, "ERR_SOCKETMODECHECK_FAILED");
-            } else if (r.equals("true")) {
-                client.sendToServer("version=20171112"); // + BuildConfig.VERSION_NAME
-            }
-
-
-
-        //get references to all important layout-pieces
-
-
+        client = new Client(this, description);
         wordsList = (ListView) findViewById(R.id.list);
 
         wordsList.setOnItemClickListener(new OnItemClickListener() {
@@ -94,9 +86,49 @@ public class MainActivity extends Activity implements RecognitionListener {
                 sendItemAtPos(position);
             }
         });
+        dialog = new ProgressDialog(this);
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        dialog.setMessage("Connecting " + ip + " . Please wait...");
+        dialog.setIndeterminate(true);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
 
-
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        connect();
     }
+
+
+    public void connect() {
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                try {
+
+                    r = new AsyncStartClient(context, client).execute("start").get();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ExecutionException ex) {
+                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                if (r == null) {
+                    //ERROR
+                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, "ERR_SOCKETMODECHECK_FAILED");
+                } else if (r.equals("true")) {
+                    client.sendToServer("version=20171112"); // + BuildConfig.VERSION_NAME
+                }
+                startListenInvoke();
+                dialog.cancel();
+
+            }
+
+
+        }).start();
+    }
+
 
     /**
      * when the button is clicked
@@ -107,11 +139,8 @@ public class MainActivity extends Activity implements RecognitionListener {
         startListening();
     }
 
-    /**
-     * use an intent to start the VoiceRecognition-Activity
-     */
 
-    public void startListenInvoke(){
+    public void startListenInvoke() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -120,7 +149,7 @@ public class MainActivity extends Activity implements RecognitionListener {
         });
     }
 
-    public void stopListenInvoke(){
+    public void stopListenInvoke() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -131,8 +160,8 @@ public class MainActivity extends Activity implements RecognitionListener {
         });
     }
 
-    public void setAutoListen(Boolean autoListen){
-    this.autoListen=autoListen;
+    public void setAutoListen(Boolean autoListen) {
+        MainActivity.autoListen = autoListen;
     }
 
     private void startListening() {
@@ -165,6 +194,7 @@ public class MainActivity extends Activity implements RecognitionListener {
         // TODO Auto-generated method stub
         //Log.i(TAG, "onbufferreceived");
     }
+
     public void onEndOfSpeech() {
         System.out.println("endofspeech");
     }
@@ -214,28 +244,24 @@ public class MainActivity extends Activity implements RecognitionListener {
     public void onDestroy() {
         listeningStatusChange(false);
         super.onDestroy();
-        if(speech != null)
-        {
+        if (speech != null) {
             speech.destroy();
-            speech=null;
+            speech = null;
         }
         System.out.println("destroy");
     }
 
     @Override
-    public void onError(int errorCode)
-    {
+    public void onError(int errorCode) {
         listeningStatusChange(false);
-        debug.setText("errorCode"+errorCode);
-        if ((errorCode == SpeechRecognizer.ERROR_NO_MATCH))
-        {
+        debug.setText("errorCode" + errorCode);
+        if ((errorCode == SpeechRecognizer.ERROR_NO_MATCH)) {
             //Log.d(TAG, "didn't recognize anything");
             if (autoListen) {
                 startListening();
             }
         }
-        if ((errorCode == SpeechRecognizer.ERROR_SPEECH_TIMEOUT))
-        {
+        if ((errorCode == SpeechRecognizer.ERROR_SPEECH_TIMEOUT)) {
             //Log.d(TAG, "didn't recognize anything");
             if (autoListen) {
                 try {
@@ -253,23 +279,21 @@ public class MainActivity extends Activity implements RecognitionListener {
     public void listeningStatusChange(boolean status) {
         if (status) {
             speakButton.setImageResource(R.drawable.microon);
-        }
-        else
-        {
+        } else {
             speakButton.setImageResource(R.drawable.microoff);
         }
         client.sendToServer("isListening=" + status);
-        isListening=status;
+        isListening = status;
     }
 
     public void sendItemAtPos(int position) {
-            String mode = PreferenceManager
-                    .getDefaultSharedPreferences(this)
-                    .getString("mode", "0");
-            if (mode.equals("1") || mode.equals("2")) {
-                String request = (String) wordsList.getItemAtPosition(position);
-                client.sendToServer("recognized=" + request);
-            }
+        String mode = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString("mode", "0");
+        if (mode.equals("1") || mode.equals("2")) {
+            String request = (String) wordsList.getItemAtPosition(position);
+            client.sendToServer("recognized=" + request);
+        }
     }
 
     @Override

@@ -11,6 +11,7 @@
     <application android:label="SpeechRecognitionMRL"
                  android:icon="@drawable/ic_launcher"
                  android:theme="@style/CustomTheme"
+                android:background="#000000"
                  android:allowBackup="false" >
         <activity android:name=".MainActivity"
                 android:launchMode="singleInstance"
