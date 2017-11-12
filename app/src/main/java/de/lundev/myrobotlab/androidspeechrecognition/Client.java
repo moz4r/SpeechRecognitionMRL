@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 /**
  *
  * @author Marvin
+ * @author Moz4r
  */
 public class Client {
 
@@ -81,8 +82,21 @@ public class Client {
         } else if (mes.startsWith("fromServer")) {
             String[] split = mes.split("=");
             mainactivity.mesFromServer(split[1]);
-        } else if (mes.startsWith("startrecognition")) {
-            mainactivity.startReconition();
+        } else if (mes.startsWith("startListening"))
+        {
+            mainactivity.startListenInvoke();
+        } else if (mes.startsWith("stopListening"))
+        {
+            mainactivity.stopListenInvoke();
+        } else if (mes.startsWith("setAutoListenTrue"))
+        {
+            mainactivity.setAutoListen(true);
+        } else if (mes.startsWith("setAutoListenFalse"))
+        {
+            mainactivity.setAutoListen(false);
+        } else if (mes.startsWith("heartBeat"))
+        {
+        // TODO heartbeat
         } else {
             System.out.println("ERROR: " + mes);
         }

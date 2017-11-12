@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="de.lundev.myrobotlab.androidspeechrecognition"
-          android:versionCode="20150501"
-          android:versionName="20150501" >
+          android:versionCode="20171112"
+          android:versionName="20171112" >
     <uses-sdk android:minSdkVersion="14"
               android:targetSdkVersion="19"    />
     <uses-permission android:name="android.permission.INTERNET" />

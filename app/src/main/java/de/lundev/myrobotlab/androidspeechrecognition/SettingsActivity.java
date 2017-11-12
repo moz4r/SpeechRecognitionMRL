@@ -19,14 +19,5 @@ public class SettingsActivity extends PreferenceActivity {
         //TODO - don't use deprecated method
         //TODO - don't use deprecated method
         final Context ctx = this;
-        ((Preference) findPreference("checkforupdatesbutton"))
-                .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference arg0) {
-                        new ServiceHelper().checkForUpdates(ctx, true);
-                        return true;
-                    }
-                }
-                );
     }
 }

@@ -23,9 +23,6 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 
 
 /**
@@ -41,6 +38,7 @@ public class MainActivity extends Activity implements RecognitionListener {
     private static SpeechRecognizer speech = null;
     private static Intent intent;
     private boolean isListening=false;
+    private boolean autoListen=false;
     TextView debug;
     Client client;
     ImageButton speakButton;
@@ -60,12 +58,6 @@ public class MainActivity extends Activity implements RecognitionListener {
         speakButton = (ImageButton) findViewById(R.id.speakButton);
 
         //Startup-routines
-        new ServiceHelper().checkForUpdates(this, false);
-
-        //check if it's in socket-mode
-        boolean socketmode = PreferenceManager
-                .getDefaultSharedPreferences(this)
-                .getBoolean("socketmode", false);
 
             TextView description = (TextView) findViewById(R.id.description);
             ImageButton speakButton = (ImageButton) findViewById(R.id.speakButton);
@@ -84,7 +76,7 @@ public class MainActivity extends Activity implements RecognitionListener {
                 //ERROR
                 Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, "ERR_SOCKETMODECHECK_FAILED");
             } else if (r.equals("true")) {
-                client.sendToServer("version=2015.01.01"); // + BuildConfig.VERSION_NAME
+                client.sendToServer("version=20171112"); // + BuildConfig.VERSION_NAME
             }
 
 
@@ -110,16 +102,38 @@ public class MainActivity extends Activity implements RecognitionListener {
      * @param v - View
      */
     public void speakButtonClicked(View v) {
-        startVoiceRecognitionActivity();
+        startListening();
     }
 
     /**
      * use an intent to start the VoiceRecognition-Activity
      */
 
+    public void startListenInvoke(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                startListening();
+            }
+        });
+    }
 
+    public void stopListenInvoke(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (isListening) {
+                    speech.stopListening();
+                }
+            }
+        });
+    }
 
-    private void startVoiceRecognitionActivity() {
+    public void setAutoListen(Boolean autoListen){
+    this.autoListen=autoListen;
+    }
+
+    private void startListening() {
         if (!isListening) {
             if (speech == null) {
                 speech = SpeechRecognizer.createSpeechRecognizer(this);
@@ -184,7 +198,9 @@ public class MainActivity extends Activity implements RecognitionListener {
         if (mode.equals("2")) {
             sendItemAtPos(0);
         }
-        startVoiceRecognitionActivity();
+        if (autoListen) {
+            startListening();
+        }
     }
 
     public void onRmsChanged(float arg0) {
@@ -212,12 +228,26 @@ public class MainActivity extends Activity implements RecognitionListener {
         if ((errorCode == SpeechRecognizer.ERROR_NO_MATCH))
         {
             //Log.d(TAG, "didn't recognize anything");
-            startVoiceRecognitionActivity();
+            if (autoListen) {
+                startListening();
+            }
         }
-
-
+        if ((errorCode == SpeechRecognizer.ERROR_SPEECH_TIMEOUT))
+        {
+            //Log.d(TAG, "didn't recognize anything");
+            if (autoListen) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                startListening();
+            }
+        }
     }
 
+    // here we try to catch microphone status
     public void listeningStatusChange(boolean status) {
         if (status) {
             speakButton.setImageResource(R.drawable.microon);
@@ -231,10 +261,6 @@ public class MainActivity extends Activity implements RecognitionListener {
     }
 
     public void sendItemAtPos(int position) {
-        boolean socketmode = PreferenceManager
-                .getDefaultSharedPreferences(this)
-                .getBoolean("socketmode", false);
-        if (socketmode) {
             String mode = PreferenceManager
                     .getDefaultSharedPreferences(this)
                     .getString("mode", "0");
@@ -242,58 +268,6 @@ public class MainActivity extends Activity implements RecognitionListener {
                 String request = (String) wordsList.getItemAtPosition(position);
                 client.sendToServer("recognized=" + request);
             }
-        } else {
-            String mode = PreferenceManager
-                    .getDefaultSharedPreferences(this)
-                    .getString("mode", "0");
-            if (mode.equals("1") || mode.equals("2")) {
-                String request = (String) wordsList.getItemAtPosition(position);
-                request = request.replace(" ", "%20");
-                String ip = PreferenceManager
-                        .getDefaultSharedPreferences(this)
-                        .getString("ip", "127.0.0.1");
-                String servicename = PreferenceManager
-                        .getDefaultSharedPreferences(this)
-                        .getString("servicename", "pab");
-
-                String url = "http://" + ip + ":7777/services/" + servicename + "/getResponse/" + request;
-                String answer = null;
-                try {
-                    answer = new AsyncGetStrFromUrl(this).execute(url).get();
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                Boolean displayresponse = PreferenceManager
-                        .getDefaultSharedPreferences(this)
-                        .getBoolean("displayresponse", true);
-
-                if (displayresponse) {
-                    String session = null;
-                    String msg = null;
-
-                    try {
-                        JSONObject obj1 = new JSONObject(answer);
-                        session = obj1.getString("session");
-                        msg = obj1.getString("msg");
-                    } catch (JSONException ex) {
-                    }
-
-                    String display = "Session: " + session + "\nMessage: " + msg;
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setMessage(display)
-                            .setTitle("ANSWER");
-
-                    builder.setPositiveButton("OK", null);
-
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
-                }
-            }
-        }
     }
 
     @Override
@@ -326,7 +300,7 @@ public class MainActivity extends Activity implements RecognitionListener {
         builder.setTitle("About");
 
         final TextView tv = new TextView(this);
-        tv.setText(getString(R.string.about1) + getString(R.string.versionname) + getString(R.string.about2));
+        tv.setText(getString(R.string.about1) + getString(R.string.versionname));
         builder.setView(tv);
 
         builder.show();
@@ -347,9 +321,5 @@ public class MainActivity extends Activity implements RecognitionListener {
                 dialog.show();
             }
         });
-    }
-
-    public void startReconition() {
-        speakButtonClicked(new View(this));
     }
 }

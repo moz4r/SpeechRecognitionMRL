@@ -25,18 +25,4 @@
             android:defaultValue="0"
         />
     </PreferenceCategory>
-    <PreferenceCategory android:title="UPDATES" >
-        <ListPreference
-            android:key="updatemode"
-            android:title="@string/settings_updatemode_tit"
-            android:summary="@string/settings_updatemode_sum"
-            android:entries="@array/settings_updatemode_entries"
-            android:entryValues="@array/settings_updatemode_entryvalues"
-            android:defaultValue="0"
-        />
-        <Preference android:key="checkforupdatesbutton"
-                    android:title="@string/settings_checkforupdatesbutton_tit"
-                    android:summary="@string/settings_checkforupdatesbutton_sum"
-        />
-    </PreferenceCategory>
 </PreferenceScreen>
