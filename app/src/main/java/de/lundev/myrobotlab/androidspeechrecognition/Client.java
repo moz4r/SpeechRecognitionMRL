@@ -1,15 +1,13 @@
 package de.lundev.myrobotlab.androidspeechrecognition;
 
-import android.content.Context;
 import android.preference.PreferenceManager;
 import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Marvin
@@ -17,28 +15,28 @@ import java.util.logging.Logger;
  */
 public class Client {
 
-    private final Context ctx;
     private final TextView description;
     private final MainActivity mainactivity;
+    Socket sock = new Socket();
     private ObjectOutputStream out;
     private ObjectInputStream in;
 
-    public Client(MainActivity ctxt, TextView descrip) {
-        ctx = ctxt;
-        description = descrip;
-        mainactivity = ctxt;
+    public Client(MainActivity mainactivity, TextView description) {
+        this.description = description;
+        this.mainactivity = mainactivity;
     }
 
-    public boolean startClient() {
+    public boolean startClient(int timeout) {
         //create connection to server
         String ip = PreferenceManager
-                .getDefaultSharedPreferences(ctx)
+                .getDefaultSharedPreferences(mainactivity)
                 .getString("ip", "127.0.0.1");
         int port = Integer.parseInt(PreferenceManager
-                .getDefaultSharedPreferences(ctx)
+                .getDefaultSharedPreferences(mainactivity)
                 .getString("port", "5684"));
+        description.setText("connecting");
         try {
-            Socket sock = new Socket(ip, port);
+            sock.connect(new InetSocketAddress(ip, port), timeout);
             out = new ObjectOutputStream(sock.getOutputStream());
             in = new ObjectInputStream(sock.getInputStream());
             RemoteReader rr = new RemoteReader();
@@ -46,15 +44,27 @@ public class Client {
             System.out.println("Connected to Server!");
             description.setText("Connected to Server!");
             return true;
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.out.println("Server not found");
             description.setText("Server not found");
+            stopClient();
             return false;
         }
     }
 
+    public void stopClient() {
+        mainactivity.setClientConnected(false);
+        try {
+            out.close();
+            in.close();
+            sock.close();
+        } catch (Exception ex) {
+            System.out.println("sock error");
+        }
+    }
+
     public void sendToServer(String mes) {
-        if (out == null) {
+        if (out == null || !mainactivity.isConnected) {
             System.out.println("Can't send");
             return;
         }
@@ -70,12 +80,7 @@ public class Client {
         if (mes.startsWith("serverversion")) {
             String[] split = mes.split("=");
             description.setText("old version, server is @" + split[1]);
-            try {
-                out.close();
-                in.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            stopClient();
         } else if (mes.startsWith("accepted")) {
             description.setText("Connection verified");
         } else if (mes.startsWith("fromServer")) {

@@ -5,8 +5,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Looper;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.speech.RecognitionListener;
@@ -23,7 +23,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,17 +38,17 @@ import java.util.logging.Logger;
 public class MainActivity extends Activity implements RecognitionListener {
 
     private static final int REQUEST_CODE = 1234;
-    private ListView wordsList;
     private static SpeechRecognizer speech = null;
     private static Intent intent;
     private static boolean isListening;
     private static boolean autoListen;
-    private Context context = this;
-    String r = null;
+    public boolean isConnected;
     TextView debug;
     Client client;
     ImageButton speakButton;
-    ProgressDialog dialog;
+    ImageButton disconnected;
+    private ListView wordsList;
+    private Context context = this;
 
     /**
      * called when the activity is started, currently when the App starts
@@ -74,6 +73,7 @@ public class MainActivity extends Activity implements RecognitionListener {
 
         TextView description = (TextView) findViewById(R.id.description);
         ImageButton speakButton = (ImageButton) findViewById(R.id.speakButton);
+
         debug = (TextView) findViewById(R.id.debug);
         description.setText("Starting socket");
 
@@ -86,47 +86,7 @@ public class MainActivity extends Activity implements RecognitionListener {
                 sendItemAtPos(position);
             }
         });
-        dialog = new ProgressDialog(this);
-        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        dialog.setMessage("Connecting " + ip + " . Please wait...");
-        dialog.setIndeterminate(true);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.show();
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        connect();
-    }
-
-
-    public void connect() {
-        new Thread(new Runnable() {
-            public void run() {
-                Looper.prepare();
-                try {
-
-                    r = new AsyncStartClient(context, client).execute("start").get();
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                if (r == null) {
-                    //ERROR
-                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, "ERR_SOCKETMODECHECK_FAILED");
-                } else if (r.equals("true")) {
-                    client.sendToServer("version=20171112"); // + BuildConfig.VERSION_NAME
-                }
-                startListenInvoke();
-                dialog.cancel();
-
-            }
-
-
-        }).start();
+        new AsyncStartClient().execute(10000);
     }
 
 
@@ -135,6 +95,13 @@ public class MainActivity extends Activity implements RecognitionListener {
      *
      * @param v - View
      */
+
+    public void disconnectedButtonClicked(View v) {
+        //new AsyncStartClient().execute(5000);
+        finish();
+        System.exit(0);
+    }
+
     public void speakButtonClicked(View v) {
         startListening();
     }
@@ -162,6 +129,19 @@ public class MainActivity extends Activity implements RecognitionListener {
 
     public void setAutoListen(Boolean autoListen) {
         MainActivity.autoListen = autoListen;
+    }
+
+    public void setClientConnected(Boolean Connected) {
+        final ImageButton disconnected = (ImageButton) findViewById(R.id.disconnected);
+        final TextView description = (TextView) findViewById(R.id.description);
+        isConnected = Connected;
+        if (isConnected) {
+            description.setText("Connected !");
+            disconnected.setVisibility(View.INVISIBLE);
+        } else {
+            description.setText("Not connected dude !");
+            disconnected.setVisibility(View.VISIBLE);
+        }
     }
 
     private void startListening() {
@@ -248,6 +228,7 @@ public class MainActivity extends Activity implements RecognitionListener {
             speech.destroy();
             speech = null;
         }
+        //client.stopClient();
         System.out.println("destroy");
     }
 
@@ -348,4 +329,52 @@ public class MainActivity extends Activity implements RecognitionListener {
             }
         });
     }
+
+    class AsyncStartClient extends AsyncTask<Integer, Integer, Boolean> {
+
+        final ProgressDialog dialog = new ProgressDialog(context);
+
+        @Override
+        public void onPreExecute() {
+            Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, "onPreExecute", "onPreExecute");
+            TextView description = new TextView(context);
+            description.setText("onPreExecute");
+            String ip = PreferenceManager
+                    .getDefaultSharedPreferences(context)
+                    .getString("ip", "127.0.0.1");
+            int port = Integer.parseInt(PreferenceManager
+                    .getDefaultSharedPreferences(context)
+                    .getString("port", "5684"));
+            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            dialog.show();
+            dialog.setMessage("Connecting to : " + ip + ":" + port + " ( timeout=10 sec )");
+            dialog.setCancelable(false);
+            dialog.show();
+        }
+
+        @Override
+        public void onPostExecute(final Boolean success) {
+            Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, "Ready", "Ready");
+
+            if (success) {
+                setClientConnected(true);
+                client.sendToServer("version=1.0b");
+            } else {
+                setClientConnected(false);
+            }
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+        }
+
+        @Override
+        public Boolean doInBackground(Integer... params) {
+            try {
+                return client.startClient(params[0]);
+            } catch (Exception ex) {
+                return false;
+            }
+        }
+    }
+
 }
