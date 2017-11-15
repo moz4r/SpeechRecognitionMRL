@@ -90,6 +90,10 @@ public class Client {
             mainactivity.startListenInvoke();
         } else if (mes.startsWith("stopListening")) {
             mainactivity.stopListenInvoke();
+        } else if (mes.startsWith("pauseListening")) {
+            mainactivity.pauseListening();
+        } else if (mes.startsWith("resumeListening")) {
+            mainactivity.resumeListening();
         } else if (mes.startsWith("setAutoListenTrue")) {
             mainactivity.setAutoListen(true);
         } else if (mes.startsWith("setAutoListenFalse")) {

@@ -42,6 +42,7 @@ public class MainActivity extends Activity implements RecognitionListener {
     private static Intent intent;
     private static boolean isListening;
     private static boolean autoListen;
+    private static boolean pausedListening = false;
     public boolean isConnected;
     TextView debug;
     Client client;
@@ -103,9 +104,23 @@ public class MainActivity extends Activity implements RecognitionListener {
     }
 
     public void speakButtonClicked(View v) {
-        startListening();
+        if (!isListening) {
+            resumeListening();
+        } else {
+            pauseListening();
+        }
+
     }
 
+    public void resumeListening() {
+        pausedListening = false;
+        startListenInvoke();
+    }
+
+    public void pauseListening() {
+        pausedListening = true;
+        stopListenInvoke();
+    }
 
     public void startListenInvoke() {
         runOnUiThread(new Runnable() {
@@ -145,7 +160,8 @@ public class MainActivity extends Activity implements RecognitionListener {
     }
 
     private void startListening() {
-        if (!isListening) {
+
+        if (!isListening && !pausedListening) {
             if (speech == null) {
                 speech = SpeechRecognizer.createSpeechRecognizer(this);
                 speech.setRecognitionListener(this);
@@ -246,7 +262,7 @@ public class MainActivity extends Activity implements RecognitionListener {
             //Log.d(TAG, "didn't recognize anything");
             if (autoListen) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
