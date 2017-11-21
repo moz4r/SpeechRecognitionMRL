@@ -15,6 +15,7 @@ import android.speech.SpeechRecognizer;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -61,6 +62,14 @@ public class MainActivity extends Activity implements RecognitionListener {
         //MainActivity.context = getApplicationContext();
 
         setContentView(R.layout.activity_main);
+
+        Boolean alwaysOn = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getBoolean("alwaysOn", true);
+
+        if (alwaysOn) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
 
         String ip = PreferenceManager
                 .getDefaultSharedPreferences(this)

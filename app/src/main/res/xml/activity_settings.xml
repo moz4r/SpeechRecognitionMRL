@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="SETUP" >
         <EditTextPreference
-            android:key="ip"
-            android:title="@string/settings_ip_tit"
-            android:summary="@string/settings_ip_sum"
             android:defaultValue="192.168.178.555"
+            android:key="ip"
+            android:summary="@string/settings_ip_sum"
+            android:title="@string/settings_ip_tit"
         />
         <EditTextPreference
-            android:key="port"
-            android:title="@string/settings_port_tit"
-            android:summary="@string/settings_port_sum"
             android:defaultValue="5684"
+            android:key="port"
+            android:summary="@string/settings_port_sum"
+            android:title="@string/settings_port_tit"
         />
     </PreferenceCategory>
     <PreferenceCategory android:title="CONFIG" >
@@ -23,5 +22,9 @@
             android:key="mode"
             android:summary="@string/settings_mode_sum"
             android:title="@string/settings_mode_tit" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="alwaysOn"
+            android:title="Screen Always On" />
     </PreferenceCategory>
 </PreferenceScreen>
