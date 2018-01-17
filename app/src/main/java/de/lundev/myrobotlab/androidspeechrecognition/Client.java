@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.sql.Timestamp;
 
 /**
  * @author Marvin
@@ -36,6 +37,7 @@ public class Client {
                 .getString("port", "5684"));
         description.setText("connecting");
         try {
+            sock = new Socket();
             sock.connect(new InetSocketAddress(ip, port), timeout);
             out = new ObjectOutputStream(sock.getOutputStream());
             in = new ObjectInputStream(sock.getInputStream());
@@ -45,7 +47,7 @@ public class Client {
             description.setText("Connected to Server!");
             return true;
         } catch (Exception ex) {
-            System.out.println("Server not found");
+            System.out.println(ex);
             description.setText("Server not found");
             stopClient();
             return false;
@@ -70,6 +72,7 @@ public class Client {
         }
         try {
             out.writeObject(mes);
+            System.out.println(mes + " is sent");
         } catch (IOException ex) {
             System.out.println("Sending failed");
         }
@@ -99,7 +102,7 @@ public class Client {
         } else if (mes.startsWith("setAutoListenFalse")) {
             mainactivity.setAutoListen(false);
         } else if (mes.startsWith("heartBeat")) {
-            // TODO heartbeat
+            mainactivity.timestamp = new Timestamp(System.currentTimeMillis());
         } else {
             System.out.println("ERROR: " + mes);
         }

@@ -36,6 +36,7 @@
             android:onClick="speakButtonClicked"
             android:scaleType="fitCenter"
             android:src="@drawable/microoff" />
+
     </TableRow>
 
     <TextView

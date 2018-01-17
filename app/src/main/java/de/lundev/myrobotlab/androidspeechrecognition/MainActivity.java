@@ -23,7 +23,10 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,6 +48,7 @@ public class MainActivity extends Activity implements RecognitionListener {
     private static boolean autoListen;
     private static boolean pausedListening = false;
     public boolean isConnected;
+    public Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     TextView debug;
     Client client;
     ImageButton speakButton;
@@ -88,6 +92,24 @@ public class MainActivity extends Activity implements RecognitionListener {
         description.setText("Starting socket");
 
         client = new Client(this, description);
+
+        class heartBeatTask extends TimerTask {
+            public void run() {
+                Timestamp now = new Timestamp(System.currentTimeMillis());
+                long secondsBetween = (now.getTime() - timestamp.getTime()) / 1000;
+                if (isConnected && secondsBetween > 6) {
+                    stopClient();
+                }
+            }
+        }
+
+        new AsyncStartClient().execute(10000);
+
+        //hearBeat : reset connection if connection lost
+        Timer heartBeatTimer = new Timer();
+        TimerTask heartBeat = new heartBeatTask();
+        heartBeatTimer.scheduleAtFixedRate(heartBeat, 0, 4000);
+
         wordsList = (ListView) findViewById(R.id.list);
 
         wordsList.setOnItemClickListener(new OnItemClickListener() {
@@ -96,20 +118,37 @@ public class MainActivity extends Activity implements RecognitionListener {
                 sendItemAtPos(position);
             }
         });
-        new AsyncStartClient().execute(10000);
+
+
     }
 
 
-    /**
-     * when the button is clicked
-     *
-     * @param v - View
-     */
-
     public void disconnectedButtonClicked(View v) {
-        //new AsyncStartClient().execute(5000);
-        finish();
-        System.exit(0);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (isConnected) {
+                    stopClient();
+                } else {
+                    timestamp = new Timestamp(System.currentTimeMillis());
+                    setClientConnected(client.startClient(2000));
+
+                }
+            }
+        });
+    }
+
+    public void stopClient() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final TextView description = (TextView) findViewById(R.id.description);
+                client.stopClient();
+                setClientConnected(false);
+                description.setText("Disonnected !");
+            }
+        });
     }
 
     public void speakButtonClicked(View v) {
@@ -118,7 +157,6 @@ public class MainActivity extends Activity implements RecognitionListener {
         } else {
             pauseListening();
         }
-
     }
 
     public void resumeListening() {
@@ -161,10 +199,11 @@ public class MainActivity extends Activity implements RecognitionListener {
         isConnected = Connected;
         if (isConnected) {
             description.setText("Connected !");
-            disconnected.setVisibility(View.INVISIBLE);
+            disconnected.setImageResource(R.drawable.connect);
+            //disconnected.setVisibility(View.INVISIBLE);
         } else {
             description.setText("Not connected dude !");
-            disconnected.setVisibility(View.VISIBLE);
+            disconnected.setImageResource(R.drawable.disconnect);
         }
     }
 
@@ -219,12 +258,15 @@ public class MainActivity extends Activity implements RecognitionListener {
         // TODO Auto-generated method stub
         System.out.println("onreadyforspeech");
         listeningStatusChange(true);
+        debug.setText("onreadyforspeech");
     }
 
+
     public void onResults(Bundle arg0) {
-        // TODO Auto-generated method stub
         listeningStatusChange(false);
-        System.out.println("onresults");
+        String result = arg0.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0);
+        System.out.println("onresults:" + result);
+
         ArrayList<String> matches = arg0.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         wordsList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,
                 matches));
@@ -232,9 +274,10 @@ public class MainActivity extends Activity implements RecognitionListener {
         String mode = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getString("mode", "0");
-        if (mode.equals("2")) {
+        if (mode.equals("2") && !result.isEmpty()) {
             sendItemAtPos(0);
         }
+
         if (autoListen) {
             startListening();
         }
@@ -250,34 +293,27 @@ public class MainActivity extends Activity implements RecognitionListener {
         listeningStatusChange(false);
         super.onDestroy();
         if (speech != null) {
+            speech.cancel();
             speech.destroy();
             speech = null;
         }
         //client.stopClient();
-        System.out.println("destroy");
+        debug.setText("onDestroy");
     }
 
     @Override
     public void onError(int errorCode) {
-        listeningStatusChange(false);
-        debug.setText("errorCode" + errorCode);
-        if ((errorCode == SpeechRecognizer.ERROR_NO_MATCH)) {
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        debug.setText("errorCode" + errorCode + now);
+
+        onDestroy();
+
+        if ((errorCode == SpeechRecognizer.ERROR_NO_MATCH || errorCode == SpeechRecognizer.ERROR_SPEECH_TIMEOUT || errorCode == SpeechRecognizer.ERROR_RECOGNIZER_BUSY)) {
             //Log.d(TAG, "didn't recognize anything");
-            if (autoListen) {
+            if (autoListen && !pausedListening) {
                 startListening();
             }
-        }
-        if ((errorCode == SpeechRecognizer.ERROR_SPEECH_TIMEOUT)) {
-            //Log.d(TAG, "didn't recognize anything");
-            if (autoListen) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                startListening();
-            }
+
         }
     }
 
@@ -298,7 +334,9 @@ public class MainActivity extends Activity implements RecognitionListener {
                 .getString("mode", "0");
         if (mode.equals("1") || mode.equals("2")) {
             String request = (String) wordsList.getItemAtPosition(position);
+
             client.sendToServer("recognized=" + request);
+            System.out.println(request + " is recognized");
         }
     }
 
